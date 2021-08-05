@@ -312,6 +312,164 @@ function library:CreateWindow(config, parent)
 				end
 				return ButtonInit
 			end
+			
+			--[
+			--AddToggle
+			--]
+			
+			function SectionInit:AddToggle(name, default, callback)
+				local ToggleInit = {}
+				local DefaultLocal = default or false
+				
+				local Toggle = Folder.Toggle:Clone()
+				
+				Toggle.Name = name .. " T"
+				Toggle.Parent = Section.Container
+				Toggle.Title.Text = name
+				Toggle.Size = UDim2.new(1, -10, 0, Toggle.Title.TextBounds.Y + 5)
+				
+				table.insert(library.ColorTable, Toggle.Toggle)
+				
+				local ToggleState = false
+				
+				local function SetState(state)
+					if state then
+						Toggle.Toggle.BackgroundColor3 = config.Color
+					elseif not state then
+						Toggle.Toggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+					end
+					ToggleState = state
+					callback(state)
+				end
+				Toggle.MouseButton1Click:Connect(function()
+					ToggleState = not ToggleState
+					SetState(ToggleState)
+				end)
+				
+				--[
+				--Toggle AddToolTip
+				--]
+				
+				function ToggleInit:AddToolTip(name)
+					if tostring(name):gsub(" ", "") ~= "" then
+						Toggle.MouseEnter:Connect(function()
+							Screen.ToolTip.Text = name
+							Screen.ToolTip.Size = UDim2.new(0, Screen.ToolTip.TextBounds.X + 5, 0, Screen.ToolTip.TextBounds.Y + 5)
+							Screen.ToolTip.Visible = true
+						end)
+						Toggle.MouseLeave:Connect(function()
+							Screen.ToolTip.Visible = false
+						end)
+					end
+				end
+				
+				--[
+				--Toggle SetState Debug
+				--]
+				
+				if default == nil then
+					function ToggleInit:SetState(state)
+						SetState(state)
+					end
+				else
+					SetState(DefaultLocal)
+				end
+				
+				--[
+				--Toggle GetState
+				--]
+				
+				function ToggleInit:GetState(state)
+					return ToggleState
+				end
+				
+				--[
+				--Toggle CreateKeybind
+				--]
+				
+				function ToggleInit:CreateKeybind(bind, callback)
+					local KeybindInit = {}
+					local Bind = bind or "NONE"
+					local WaitingForBind = false
+					local Selected = Bind
+					
+					local Blacklisted = {
+						"W",
+						"A",
+						"S",
+						"D",
+						"Slash",
+						"Tab",
+						"Backspace",
+						"Escape",
+						"Space",
+						"Delete",
+						"Unknown",
+						"Backquote"
+					}
+					
+					Toggle.Keybind.Visible = true
+					Toggle.Keybind.Text = "[ " .. Bind .. " ]"
+					
+					Toggle.Keybind.MouseButton1Click:Connect(function()
+						Toggle.Keybind.Text = "[ ... ]"
+						WaitingForBind = true
+					end)
+					Toggle.Keybind:GetPropertyChangedSignal("TextBounds"):Connect(function()
+						Toggle.Keybind.Size = UDim2.new(0, Toggle.Keybind.TextBounds.X, 1, 0)
+						Toggle.Title.Size = UDim2.new(1, -Toggle.Keybind.Size.X.Offset - 15, 1, 0)
+					end)
+					UIS.InputBegan:Connect(function(input)
+						if WaitingForBind and input.UserInputType == Enum.UserInputType.Keyboard then
+							local Key = tostring(input.KeyCode):gsub("Enum.KeyCode.", "")
+							
+							if not table.find(Blacklisted, Key) then
+								Toggle.Keybind.Text = "[ " .. Key .. " ]"
+								Selected = Key
+							else
+								Toggle.Keybind.Text = "[ NONE ]"
+								Selected = "NONE"
+							end
+							WaitingForBind = false
+						elseif input.UserInputType == Enum.UserInputType.Keyboard then
+							local Key = tostring(input.KeyCode):gsub("Enum.KeyCode.", "")
+							
+							if Key == Selected then
+								ToggleState = not ToggleState
+								SetState(ToggleState)
+								
+								if callback then
+									callback(Key)
+								end
+							end
+						end
+					end)
+					
+					--[
+					--Toggle Keybind SetBind
+					--]
+					
+					function KeybindInit:SetBind(key)
+						Toggle.Keybind.Text = "[ " .. key .. " ]"
+						Selected = key
+					end
+					
+					--[
+					--Toggle Keybind GetBind
+					--]
+					
+					function KeybindInit:GetBind()
+						return Selected
+					end
+					return KeybindInit
+				end
+				return ToggleInit
+			end
+			
+			--[
+			--
+			--]
+			
 			return SectionInit
 		end
 		return TabInit
