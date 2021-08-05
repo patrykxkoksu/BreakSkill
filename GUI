@@ -1,44 +1,31 @@
-local BreakSkill = {RainbowColorValue = 0, HUESelectionPosition = 0}
-local PresetColor = Color3.fromRGB(255, 30, 40)
-local UIS = game:GetService("UserInputService")
-local TS = game:GetService("TweenService")
+local exploit_type
+
+if syn then
+	exploit_type = "Synapse X"
+elseif getexecutorname then
+	exploit_type = "Script-Ware"
+else
+	game:GetService("Players").LocalPlayer:Kick("Your executor is not supported!")
+end
+
+local library = {
+	Toggle = true,
+	FirstTab = nil,
+	TabCount = 0,
+	ColorTable = {}
+}
+
 local RS = game:GetService("RunService")
-local Client = game:GetService("Players").LocalPlayer
-local Mouse = Client:GetMouse()
-local CloseBind = Enum.KeyCode.RightShift
-
-local BreakSkillLib = Instance.new("ScreenGui")
-BreakSkillLib.Name = "BreakSkill | Hub"
-BreakSkillLib.Parent = game.CoreGui
-BreakSkillLib.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
-
-coroutine.wrap(function()
-	while wait() do
-		BreakSkill.RainbowColorValue = BreakSkill.RainbowColorValue + 1 / 255
-		BreakSkill.HUESelectionPosition = BreakSkill.HueSelectionPosition + 1
-		
-		if BreakSkill.RainbowColorValue >= 1 then
-			BreakSkill.RainbowColorValue = 0
-		end
-		if BreakSkill.HUESelectionPosition == 80 then
-			BreakSkill.HUESelectionPosition = 0
-		end
-	end
-end)()
+local HS = game:GetService("HttpService")
+local TS = game:GetService("TweenService")
+local UIS = game:GetService("UserInputService")
 
 local function MakeDraggable(topbarobject, object)
 	local Dragging = nil
 	local DragInput = nil
 	local DragStart = nil
 	local StartPosition = nil
-
-	local function Update(input)
-		local Delta = input.Position - DragStart
-		local pos = UDim2.new(StartPosition.X.Scale, StartPosition.X.Offset + Delta.X, StartPosition.Y.Scale, StartPosition.Y.Offset + Delta.Y)
-		object.Position = pos
-	end
-
+	
 	topbarobject.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			Dragging = true
@@ -59,7 +46,8 @@ local function MakeDraggable(topbarobject, object)
 	end)
 	UIS.InputChanged:Connect(function(input)
 		if input == DragInput and Dragging then
-			Update(input)
+			local Delta = input.Position - DragStart
+			object.Position = UDim2.new(StartPosition.X.Scale, StartPosition.X.Offset + Delta.X, StartPosition.Y.Scale, StartPosition.Y.Offset + Delta.Y)
 		end
 	end)
 end
@@ -68,351 +56,209 @@ end
 --CreateWindow
 --]
 
-function BreakSkill:CreateWindow(text, gamename, maincolor, toclose)
-	CloseBind = toclose or Enum.KeyCode.RightControl
-	PresetColor = maincolor or Color3.fromRGB(255, 30, 40)
-	local fs = false
-	local MainFrame = Instance.new("Frame")
-	local MainCorner = Instance.new("UICorner")
-	local LeftFrame = Instance.new("Frame")
-	local LeftCorner = Instance.new("UICorner")
-	local GlowTabHolder = Instance.new("ImageLabel")
-	local Title = Instance.new("TextLabel")
-	local BottomText = Instance.new("TextLabel")
-	local TabHold = Instance.new("Frame")
-	local TabLayout = Instance.new("UIListLayout")
-	local Drag = Instance.new("Frame")
-	local ContainerFolder = Instance.new("Folder")
-
-	MainFrame.Name = "MainFrame"
-	MainFrame.Parent = BreakSkillLib
-	MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-	MainFrame.BackgroundColor3 = Color3.fromRGB(50, 53, 59)
-	MainFrame.ClipsDescendants = true
-	MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-	MainFrame.Size = UDim2.new(0, 0, 0, 0)
-
-	MainCorner.CornerRadius = UDim.new(0, 5)
-	MainCorner.Name = "MainCorner"
-	MainCorner.Parent = MainFrame
-
-	LeftFrame.Name = "LeftFrame"
-	LeftFrame.Parent = MainFrame
-	LeftFrame.BackgroundColor3 = Color3.fromRGB(47, 49, 54)
-	LeftFrame.Size = UDim2.new(0, 205, 0, 484)
-
-	LeftCorner.CornerRadius = UDim.new(0, 5)
-	LeftCorner.Name = "LeftCorner"
-	LeftCorner.Parent = LeftFrame
-
-	GlowTabHolder.Name = "GlowTabHolder"
-	GlowTabHolder.Parent = LeftFrame
-	GlowTabHolder.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-	GlowTabHolder.BackgroundTransparency = 1.000
-	GlowTabHolder.BorderSizePixel = 0
-	GlowTabHolder.Position = UDim2.new(0, -15, 0, -15)
-	GlowTabHolder.Size = UDim2.new(1, 30, 1, 30)
-	GlowTabHolder.ZIndex = 0
-	GlowTabHolder.Image = "rbxassetid://4996891970"
-	GlowTabHolder.ImageColor3 = Color3.fromRGB(15, 15, 15)
-	GlowTabHolder.ScaleType = Enum.ScaleType.Slice
-	GlowTabHolder.SliceCenter = Rect.new(20, 20, 280, 280)
-
-	Title.Name = "Title"
-	Title.Parent = LeftFrame
-	Title.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-	Title.BackgroundTransparency = 1.000
-	Title.Position = UDim2.new(0.097560972, 0, 0.0475206636, 0)
-	Title.Size = UDim2.new(0, 111, 0, 34)
-	Title.Font = Enum.Font.GothamBold
-	Title.Text = text
-	Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-	Title.TextSize = 25.000
-	Title.TextXAlignment = Enum.TextXAlignment.Left
-
-	BottomText.Name = "BottomText"
-	BottomText.Parent = LeftFrame
-	BottomText.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-	BottomText.BackgroundTransparency = 1.000
-	BottomText.Position = UDim2.new(0.097560972, 0, 0.0889999792, 0)
-	BottomText.Size = UDim2.new(0, 113, 0, 28)
-	BottomText.Font = Enum.Font.Gotham
-	BottomText.Text = gamename
-	BottomText.TextColor3 = Color3.fromRGB(255, 255, 255)
-	BottomText.TextSize = 14.000
-	BottomText.TextTransparency = 0.300
-	BottomText.TextXAlignment = Enum.TextXAlignment.Left
-
-	TabHold.Name = "TabHold"
-	TabHold.Parent = LeftFrame
-	TabHold.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-	TabHold.BackgroundTransparency = 1.000
-	TabHold.Position = UDim2.new(0, 0, 0.167355374, 0)
-	TabHold.Size = UDim2.new(0, 205, 0, 403)
-
-	TabLayout.Name = "TabLayout"
-	TabLayout.Parent = TabHold
-	TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	TabLayout.Padding = UDim.new(0, 3)
-
-	Drag.Name = "Drag"
-	Drag.Parent = MainFrame
-	Drag.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-	Drag.BackgroundTransparency = 1.000
-	Drag.Position = UDim2.new(0.290368259, 0, 0, 0)
-	Drag.Size = UDim2.new(0, 501, 0, 23)
-
-	ContainerFolder.Name = "ContainerFolder"
-	ContainerFolder.Parent = MainFrame
-
-	MakeDraggable(Drag,MainFrame)
-	MakeDraggable(LeftFrame,MainFrame)
-	MainFrame:TweenSize(UDim2.new(0, 706, 0, 484), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, .6, true)
+function library:CreateWindow(config, parent)
+	local WindowInit = {}
+	local Folder = game:GetObjects("rbxassetid://7141683860")[1]
+	local Screen = Folder.Bracket:Clone()
 	
-	local uitoggled = false
+	if exploit_type == "Synapse X" then
+		syn.protect_gui(Screen)
+	elseif exploit_type == "Script-Ware" then
+		gethui(Screen)
+	else
+		game:GetService("Players").LocalPlayer:Kick("Your executor is not supported!")
+	end
+	local Main = Screen.Main
+	local Holder = Main.Holder
+	local Topbar = Main.Topbar
+	local TContainer = Holder.TContainer
+	local TBContainer = Holder.TBContainer.Holder
 	
-	UIS.InputBegan:Connect(function(io, p)
-		if io.KeyCode == CloseBind then
-			if uitoggled == false then
-				MainFrame:TweenSize(UDim2.new(0, 0, 0, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, .6, true)
-				uitoggled = true
-				wait(.5)
-				BreakSkillLib.Enabled = false
-			else
-				MainFrame:TweenSize(UDim2.new(0, 706, 0, 484), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, .6, true)
-				BreakSkillLib.Enabled = true
-				uitoggled = false
+	Screen.Name = HS:GenerateGUID(false)
+	Screen.Parent = parent
+	Topbar.WindowName.Text = config.WindowName
+	
+	MakeDraggable(Topbar, Main)
+	
+	local function CloseAll()
+		for _, Tab in pairs(TContainer:GetChildren()) do
+			if Tab:IsA("ScrollingFrame") then
+				Tab.Visible = false
 			end
+		end
+	end
+	local function ResetAll()
+		for _, TabButton in pairs(TBContainer:GetChildren()) do
+			if TabButton:IsA("TextButton") then
+				TabButton.BackgroundTransparency = 1
+			end
+		end
+		for _, TabButton in pairs(TBContainer:GetChildren()) do
+			if TabButton:IsA("TextButton") then
+				TabButton.Size = UDim2.new(0, 480 / library.TabCount, 1, 0)
+			end
+		end
+	end
+	local function KeepFirst()
+		for _, Tab in pairs(TContainer:GetChildren()) do
+			if Tab:IsA("ScrollingFrame") then
+				if Tab.Name == library.FirstTab .. " T" then
+					Tab.Visible = true
+				else
+					Tab.Visible = false
+				end
+			end
+		end
+		for _, TabButton in pairs(TBContainer:GetChildren()) do
+			if TabButton:IsA("TextButton") then
+				if TabButton.Name == library.FirstTab .. " TB" then
+					TabButton.BackgroundTransparency = 0
+				else
+					TabButton.BackgroundTransparency = 1
+				end
+			end
+		end
+	end
+	local function Toggle(state)
+		if state then
+			Main.Visible = true
+		elseif not state then
+			for _, Pallete in pairs(Screen:GetChildren()) do
+				if Pallete:IsA("Frame") and Pallete.Name ~= "Main" then
+					Pallete.Visible = false
+				end
+			end
+			Screen.ToolTip.Visible = false
+			Main.Visible = false
+		end
+		library.Toggle = state
+	end
+	local function ChangeColor(color)
+		config.Color = color
+		
+		for i, v in pairs(library.ColorTable) do
+			if v.BackgroundColor3 ~= Color3.fromRGB(50, 50, 50) then
+				v.BackgroundColor3 = color
+			end
+		end
+	end
+	function WindowInit:Toggle(state)
+		Toggle(state)
+	end
+	function WindowInit:ChangeColor(color)
+		ChangeColor(color)
+	end
+	function WindowInit:SetBackground(ImageId)
+		Holder.Image = "rbxassetid://".. ImageId
+	end
+	function WindowInit:SetBackgroundColor(color)
+		Holder.ImageColor3 = color
+	end
+	function WindowInit:SetBackgroundTransparency(transparency)
+		Holder.ImageTransparency = transparency
+	end
+	function WindowInit:SetTileOffset(offset)
+		Holder.TileSize = UDim2.new(0, offset, 0, offset)
+	end
+	function WindowInit:SetTileScale(scale)
+		Holder.TileSize = UDim2.new(scale, 0, scale, 0)
+	end
+	RS.RenderStepped:Connect(function()
+		if library.Toggle then
+			Screen.ToolTip.Position = UDim2.new(0, UIS:GetMouseLocation().X + 10, 0, UIS:GetMouseLocation().Y - 5)
 		end
 	end)
-	--[
-	--CreateNotification
-	--]
-	function BreakSkill:CreateNotification(desc, buttontitle)
-		for i, v in next, MainFrame:GetChildren() do
-			if v.Name == "NotificationBase" then
-				v:Destroy()
-			end
-		end
-		local NotificationBase = Instance.new("TextButton")
-		local NotificationBaseCorner = Instance.new("UICorner")
-		local NotificationFrame = Instance.new("Frame")
-		local NotificationFrameCorner = Instance.new("UICorner")
-		local NotificationFrameGlow = Instance.new("ImageLabel")
-		local NotificationTitle = Instance.new("TextLabel")
-		local CloseBtn = Instance.new("TextButton")
-		local CloseBtnCorner = Instance.new("UICorner")
-		local NotificationDesc = Instance.new("TextLabel")
-		
-		NotificationBase.Name = "NotificationBase"
-		NotificationBase.Parent = MainFrame
-		NotificationBase.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-		NotificationBase.BackgroundTransparency = 1
-		NotificationBase.Size = UDim2.new(0, 706, 0, 484)
-		NotificationBase.AutoButtonColor = false
-		NotificationBase.Font = Enum.Font.SourceSans
-		NotificationBase.Text = ""
-		NotificationBase.TextColor3 = Color3.fromRGB(0, 0, 0)
-		NotificationBase.TextSize = 14.000
-		NotificationBase.Visible = true
-
-		NotificationBaseCorner.CornerRadius = UDim.new(0, 5)
-		NotificationBaseCorner.Name = "NotificationBaseCorner"
-		NotificationBaseCorner.Parent = NotificationBase
-
-		NotificationFrame.Name = "NotificationFrame"
-		NotificationFrame.Parent = NotificationBase
-		NotificationFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-		NotificationFrame.BackgroundColor3 = Color3.fromRGB(50, 53, 59)
-		NotificationFrame.ClipsDescendants = true
-		NotificationFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-		NotificationFrame.Size = UDim2.new(0, 0, 0, 0)
-
-		NotificationFrameCorner.CornerRadius = UDim.new(0, 5)
-		NotificationFrameCorner.Name = "NotificationFrameCorner"
-		NotificationFrameCorner.Parent = NotificationFrame
-
-		NotificationFrameGlow.Name = "NotificationFrameGlow"
-		NotificationFrameGlow.Parent = NotificationFrame
-		NotificationFrameGlow.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-		NotificationFrameGlow.BackgroundTransparency = 1.000
-		NotificationFrameGlow.BorderSizePixel = 0
-		NotificationFrameGlow.Position = UDim2.new(0, -15, 0, -15)
-		NotificationFrameGlow.Size = UDim2.new(1, 30, 1, 30)
-		NotificationFrameGlow.ZIndex = 0
-		NotificationFrameGlow.Image = "rbxassetid://4996891970"
-		NotificationFrameGlow.ImageColor3 = Color3.fromRGB(15, 15, 15)
-		NotificationFrameGlow.ScaleType = Enum.ScaleType.Slice
-		NotificationFrameGlow.SliceCenter = Rect.new(20, 20, 280, 280)
-
-		NotificationTitle.Name = "NotificationTitle"
-		NotificationTitle.Parent = NotificationFrame
-		NotificationTitle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-		NotificationTitle.BackgroundTransparency = 1.000
-		NotificationTitle.Position = UDim2.new(0.0400609747, 0, 0.0761325806, 0)
-		NotificationTitle.Size = UDim2.new(0, 111, 0, 34)
-		NotificationTitle.Font = Enum.Font.GothamBold
-		NotificationTitle.Text = Title.Text .. " | NOTIFICATION"
-		NotificationTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-		NotificationTitle.TextSize = 24.000
-		NotificationTitle.TextXAlignment = Enum.TextXAlignment.Left
-		NotificationTitle.TextTransparency = 1
-
-		CloseBtn.Name = "CloseBtn"
-		CloseBtn.Parent = NotificationFrame
-		CloseBtn.BackgroundColor3 = Color3.fromRGB(64, 68, 75)
-		CloseBtn.ClipsDescendants = true
-		CloseBtn.Position = UDim2.new(0.0403124988, 0, 0.720855951, 0)
-		CloseBtn.Size = UDim2.new(0, 366, 0, 43)
-		CloseBtn.AutoButtonColor = false
-		CloseBtn.Font = Enum.Font.Gotham
-		CloseBtn.Text = buttontitle
-		CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-		CloseBtn.TextSize = 15.000
-		CloseBtn.TextTransparency = 1
-		CloseBtn.BackgroundTransparency = 1
-
-		CloseBtnCorner.CornerRadius = UDim.new(0, 4)
-		CloseBtnCorner.Name = "CloseBtnCorner"
-		CloseBtnCorner.Parent = CloseBtn
-
-		NotificationDesc.Name = "NotificationDesc"
-		NotificationDesc.Parent = NotificationFrame
-		NotificationDesc.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-		NotificationDesc.BackgroundTransparency = 1.000
-		NotificationDesc.Position = UDim2.new(0.112499997, 0, 0.266355127, 0)
-		NotificationDesc.Size = UDim2.new(0, 309, 0, 82)
-		NotificationDesc.Font = Enum.Font.Gotham
-		NotificationDesc.Text = desc
-		NotificationDesc.TextColor3 = Color3.fromRGB(255, 255, 255)
-		NotificationDesc.TextSize = 15.000
-		NotificationDesc.TextWrapped = true
-		NotificationDesc.TextTransparency = 1
-		
-		CloseBtn.MouseEnter:Connect(function()
-			TS:Create(CloseBtn, TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = 0}):Play()
-		end)
-		CloseBtn.MouseLeave:Connect(function()
-			TS:Create(CloseBtn, TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = 0.3}):Play()
-		end)
-		CloseBtn.MouseButton1Click:Connect(function()
-			TS:Create(NotificationDesc, TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = 1}):Play()
-			TS:Create(CloseBtn, TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = 1}):Play()
-			TS:Create(NotificationTitle, TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = 1}):Play()
-			TS:Create(CloseBtn, TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play()
-			
-			wait(.4)
-			
-			CloseBtn.Visible = false
-			NotificationFrame:TweenSize(UDim2.new(0, 0, 0, 0), Enum.EasingStyle.Quart, Enum.EasingDirection.Out, .6, true)
-			
-			wait(.2)
-			
-			TS:Create(NotificationBase, TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play()
-			
-			wait(.2)
-			
-			NotificationBase.Visible = false
-		end)
-		TS:Create(NotificationBase, TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0.550}):Play()
-		
-		wait(.1)
-		
-		NotificationFrame:TweenSize(UDim2.new(0, 400, 0, 214), Enum.EasingStyle.Quart, Enum.EasingDirection.Out, .6, true)
-		
-		wait(.4)
-		
-		TS:Create(NotificationDesc, TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = .3}):Play()
-		TS:Create(NotificationTitle, TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = 0}):Play()
-		TS:Create(CloseBtn, TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0}):Play()
-	end
-	local Tabs = {}
 	
-	function Tabs:CreateTab(text, icon)
-		local Tab = Instance.new("TextButton")
-		local TabIcon = Instance.new("ImageLabel")
-		local TabTitle = Instance.new("TextLabel")
-		local Container = Instance.new("ScrollingFrame")
-		local ContainerLayout = Instance.new("UIListLayout")
+	--[
+	--CreateTab
+	--]
+	
+	function WindowInit:CreateTab(name)
+		local TabInit = {}
 		
-		Tab.Name = "Tab"
-		Tab.Parent = TabHold
-		Tab.BackgroundColor3 = PresetColor
-		Tab.BorderSizePixel = 0
-		Tab.Size = UDim2.new(0, 205, 0, 40)
-		Tab.AutoButtonColor = false
-		Tab.Font = Enum.Font.SourceSans
-		Tab.Text = ""
-		Tab.TextColor3 = Color3.fromRGB(0, 0, 0)
-		Tab.TextSize = 14.000
-		Tab.BackgroundTransparency = 1
+		local Tab = Folder.Tab:Clone()
+		local TabButton = Folder.TabButton:Clone()
 		
-		TabIcon.Name = "TabIcon"
-		TabIcon.Parent = Tab
-		TabIcon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-		TabIcon.BackgroundTransparency = 1.000
-		TabIcon.Position = UDim2.new(0.0634146333, 0, 0.25, 0)
-		TabIcon.Size = UDim2.new(0, 20, 0, 20)
-		TabIcon.Image = icon
-		TabIcon.ImageTransparency = .3
+		Tab.Name = name .. " T"
+		Tab.Parent = TContainer
 		
-		TabTitle.Name = "TabTitle"
-		TabTitle.Parent = Tab
-		TabTitle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-		TabTitle.BackgroundTransparency = 1.000
-		TabTitle.Position = UDim2.new(0.1902439, 0, 0.25, 0)
-		TabTitle.Size = UDim2.new(0, 113, 0, 19)
-		TabTitle.Font = Enum.Font.Gotham
-		TabTitle.Text = text
-		TabTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-		TabTitle.TextSize = 15.000
-		TabTitle.TextXAlignment = Enum.TextXAlignment.Left
-		TabTitle.TextTransparency = .3
+		TabButton.Name = name .. " TB"
+		TabButton.Parent = TBContainer
+		TabButton.Title.Text = name
+		TabButton.BackgroundColor3 = config.Color
 		
-		Container.Name = "Container"
-		Container.Parent = ContainerFolder
-		Container.Active = true
-		Container.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-		Container.BackgroundTransparency = 1.000
-		Container.BorderSizePixel = 0
-		Container.Position = UDim2.new(0.321529746, 0, 0.0475206599, 0)
-		Container.Size = UDim2.new(0, 470, 0, 438)
-		Container.CanvasSize = UDim2.new(0, 0, 0, 0)
-		Container.ScrollBarThickness = 5
-		Container.Visible = false
-		Container.ScrollBarImageColor3 = Color3.fromRGB(71, 76, 84)
+		table.insert(library.ColorTable, TabButton)
+		library.TabCount = library.TabCount + 1
 		
-		ContainerLayout.Name = "ContainerLayout"
-		ContainerLayout.Parent = Container
-		ContainerLayout.SortOrder = Enum.SortOrder.LayoutOrder
-		ContainerLayout.Padding = UDim.new(0, 15)
-		
-		if fs == false then
-			fs = true
-			TabTitle.TextTransparency = 0
-			TabIcon.ImageTransparency = 0
-			Tab.BackgroundTransparency = 0
-			Container.Visible = true
+		if library.TabCount == 1 then
+			library.FirstTab = name
 		end
-		Tab.MouseButton1Click:Connect(function()
-			for i, v in next, ContainerFolder:GetChildren() do
-				if v.Name == "Container" then
-					v.Visible = false
+		CloseAll()
+		ResetAll()
+		KeepFirst()
+		
+		local function GetSide(longest)
+			if longest then
+				if Tab.LeftSide.ListLayout.AbsoluteContentSize.Y > Tab.RightSide.ListLayout.AbsoluteContentSize.Y then
+					return Tab.LeftSide
+				else
+					return Tab.RightSide
 				end
-				Container.Visible = true
+			else
+				if Tab.LeftSide.ListLayout.AbsoluteContentSize.Y > Tab.RightSide.ListLayout.AbsoluteContentSize.Y then
+					return Tab.RightSide
+				else
+					return Tab.LeftSide
+				end
 			end
-			for i, v in next, TabHold:GetChildren() do
-				if v.Name == "Tab" then
-					TS:Create(v, TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play()
-					TS:Create(v.TabIcon, TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = .3}):Play()
-					TS:Create(Tab, TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play()
-					TS:Create(TabIcon, TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = 0}):Play()
-					TS:Create(TabTitle, TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = 0}):Play()
-				end
+		end
+		TabButton.MouseButton1Click:Connect(function()
+			CloseAll()
+			ResetAll()
+			Tab.Visible = true
+			TabButton.BackgroundTransparency = 0
+		end)
+		Tab.LeftSide.ListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+			if GetSide(true).Name == Tab.LeftSide.Name then
+				Tab.CanvasSize = UDim2.new(0, 0, 0, Tab.LeftSide.ListLayout.AbsoluteContentSize.Y + 10)
+			else
+				Tab.CanvasSize = UDim2.new(0, 0, 0, Tab.RightSide.ListLayout.AbsoluteContentSize.Y + 10)
 			end
 		end)
+		Tab.RightSide.ListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+			if GetSide(true).Name == Tab.LeftSide.Name then
+				Tab.CanvasSize = UDim2.new(0, 0, 0, Tab.LeftSide.ListLayout.AbsoluteContentSize.Y + 10)
+			else
+				Tab.CanvasSize = UDim2.new(0, 0, 0, Tab.RightSide.ListLayout.AbsoluteContentSize.Y + 10)
+			end
+		end)
+		function TabInit:CreateSection(name)
+			local SectionInit = {}
+			
+			local Section = Folder.Section:Clone()
+			
+			Section.Name = name .. " S"
+			Section.Parent = GetSide(false)
+			
+			Section.Title.Text = name
+			Section.Title.Size = UDim2.new(0, Section.Title.TextBounds.X + 10, 0, 2)
+			
+			Section.Container.ListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+				Section.Size = UDim2.new(1, 0, 0, Section.Container.ListLayout.AbsoluteContentSize.Y + 15)
+			end)
+			function SectionInit:AddLabel(name)
+				local Label = Folder.Label:Clone()
+				
+				Label.Name = name .. " L"
+				Label.Parent = Section.Container
+				Label.Text = name
+				Label.Size = UDim2.new(1, -10, 0, Label.TextBounds.Y)
+			end
+			return SectionInit
+		end
+		return TabInit
 	end
-	return Tabs
+	return WindowInit
 end
 
-return BreakSkill
+return library
