@@ -712,6 +712,136 @@ function library:CreateWindow(config, parent)
 				end
 				return DropdownInit
 			end
+			
+			--[
+			--ColorPicker
+			--]
+			
+			function SectionInit:AddColorPicker(name, callback)
+				local ColorPickerInit = {}
+				local ColorRender = nil
+				local HUERender = nil
+				local ColorPickerToggle = false
+				local ColorTable = {
+					HUE = 1,
+					Saturation = 0,
+					Value = 0
+				}
+				
+				local ColorPicker = Folder.Colorpicker:Clone()
+				local Pallete = Folder.Pallete:Clone()
+				
+				ColorPicker.Name = name .. " CP"
+				ColorPicker.Parent = Section.Container
+				ColorPicker.Title.Text = name
+				ColorPicker.Size = UDim2.new(1, -10, 0, ColorPicker.Title.TextBounds.Y + 5)
+				
+				Pallete.Name = name .. " P"
+				Pallete.Parent = Screen
+				Pallete.Position = UDim2.new(0, ColorPicker.Color.AbsolutePosition.X - 129, 0, ColorPicker.Color.AbsolutePosition.Y + 52)
+				
+				local function UpdateColor()
+					ColorPicker.Color.BackgroundColor3 = Color3.fromHSV(ColorTable.HUE, ColorTable.Saturation, ColorTable.Value)
+					Pallete.GradientPallete.BackgroundColor3 = Color3.fromHSV(ColorTable.HUE, 1, 1)
+					Pallete.Input.InputBox.PlaceholderText = "RGB: " .. math.round(ColorPicker.Color.BackgroundColor3.R * 255) .. "," .. math.round(ColorPicker.Color.BackgroundColor3.G * 255) .. "," .. math.round(ColorPicker.Color.BackgroundColor3.B * 255)
+					callback(ColorPicker.Color.BackgroundColor3)
+				end
+				ColorPicker.MouseButton1Click:Connect(function()
+					ColorPickerToggle = not ColorPickerToggle
+					
+					if ColorPickerToggle then
+						Pallete.Visible = true
+						Pallete.Position = UDim2.new(0, ColorPicker.Color.AbsolutePosition.X - 129, 0, ColorPicker.Color.AbsolutePosition.Y + 52)
+					else
+						Pallete.Visible = false
+					end
+				end)
+				Pallete.GradientPallete.InputBegan:Connect(function(input)
+					if input.UserInputType == Enum.UserInputType.MouseButton1 then
+						if ColorRender then
+							ColorRender:Disconnect()
+						end
+						ColorRender = RS.RenderStepped:Connect(function()
+							local Mouse = UIS:GetMouseLocation()
+							local ColorX = math.clamp(Mouse.X - Pallete.GradientPallete.AbsolutePosition.X, 0, Pallete.GradientPallete.AbsoluteSize.X) / Pallete.GradientPallete.AbsoluteSize.X
+							local ColorY = math.clamp((Mouse.Y - 37) - Pallete.GradientPallete.AbsolutePosition.Y, 0, Pallete.GradientPallete.AbsoluteSize.Y) / Pallete.GradientPallete.AbsoluteSize.Y
+							Pallete.GradientPallete.Dot.Position = UDim2.new(ColorX, 0, ColorY, 0)
+							ColorTable.Saturation = ColorX
+							ColorTable.Value = 1 - ColorY
+							UpdateColor()
+						end)
+					end
+				end)
+				Pallete.GradientPallete.InputEnded:Connect(function(input)
+					if input.UserInputType == Enum.UserInputType.MouseButton1 then
+						if ColorRender then
+							ColorRender:Disconnect()
+						end
+					end
+				end)
+				Pallete.ColorSlider.InputBegan:Connect(function(input)
+					if input.UserInputType == Enum.UserInputType.MouseButton1 then
+						if HUERender then
+							HUERender:Disconnect()
+						end
+						HUERender = RS.RenderStepped:Connect(function()
+							local Mouse = UIS:GetMouseLocation()
+							local HUEX = math.clamp(Mouse.X - Pallete.ColorSlider.AbsolutePosition.X, 0, Pallete.ColorSlider.AbsoluteSize.X) / Pallete.ColorSlider.AbsoluteSize.X
+							ColorTable.HUE = 1 - HUEX
+							UpdateColor()
+						end)
+					end
+				end)
+				Pallete.ColorSlider.InputEnded:Connect(function(input)
+					if input.UserInputType == Enum.UserInputType.MouseButton1 then
+						if HUERender then
+							HUERender:Disconnect()
+						end
+					end
+				end)
+				
+				--[
+				--ColorPicker UpdateColor
+				--]
+				
+				function ColorPickerInit:UpdateColor(color)
+					local HUE, Saturation, Value = color:ToHSV()
+					ColorPicker.Color.BackgroundColor3 = Color3.fromHSV(HUE, Saturation, Value)
+					Pallete.GradientPallete.BackgroundColor3 = Color3.fromHSV(HUE, 1, 1)
+					Pallete.Input.InputBox.PlaceholderText = "RGB: " .. math.round(ColorPicker.Color.BackgroundColor3.R * 255) .. "," .. math.round(ColorPicker.Color.BackgroundColor3.G * 255) .. "," .. math.round(ColorPicker.Color.BackgroundColor3.B * 255)
+					ColorTable = {
+						HUE = HUE,
+						Saturation = Saturation,
+						Value = Value
+					}
+					callback(color)
+				end
+				Pallete.Input.InputBox.FocusLost:Connect(function(enter)
+					if enter then
+						local ColorString = string.split(string.gsub(Pallete.Input.InputBox.Text, " ", ""), ",")
+						ColorPickerInit:UpdateColor(Color3.fromRGB(ColorString[1], ColorString[2], ColorString[3]))
+						Pallete.Input.InputBox.Text = ""
+					end
+				end)
+				
+				--[
+				--ColorPicker AddToolTip
+				--]
+				
+				function ColorPickerInit:AddToolTip(name)
+					if tostring(name):gsub(" ", "") ~= "" then
+						ColorPicker.MouseEnter:Connect(function()
+							Screen.ToolTip.Text = name
+							Screen.ToolTip.Size = UDim2.new(0, Screen.ToolTip.TextBounds.X + 5, 0, Screen.ToolTip.TextBounds.Y + 5)
+							Screen.ToolTip.Visible = true
+						end)
+						ColorPicker.MouseLeave:Connect(function()
+							Screen.ToolTip.Visible = false
+						end)
+					end
+				end
+				return ColorPickerInit
+			end
 			return SectionInit
 		end
 		return TabInit
