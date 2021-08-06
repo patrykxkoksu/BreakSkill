@@ -589,6 +589,129 @@ function library:CreateWindow(config, parent)
 				end
 				return SliderInit
 			end
+			
+			--[
+			--AddDropdown
+			--]
+			
+			function SectionInit:AddDropdown(name)
+				local DropdownInit = {}
+				local DropdownToggle = false
+				
+				local Dropdown = Folder.Dropdown:Clone()
+				
+				Dropdown.Name = name .. " D"
+				Dropdown.Parent = Section.Container
+				Dropdown.Title.Text = name
+				Dropdown.Title.Size = UDim2.new(1, 0, 0, Dropdown.Title.TextBounds.Y + 5)
+				Dropdown.Container.Position = UDim2.new(0, 0, 0, Dropdown.Title.TextBounds.Y + 5)
+				Dropdown.Size = UDim2.new(1, -10, 0, Dropdown.Title.TextBounds.Y + 25)
+				
+				Dropdown.MouseButton1Click:Connect(function()
+					DropdownToggle = not DropdownToggle
+					
+					if DropdownToggle then
+						Dropdown.Size = UDim2.new(1, -10, 0, Dropdown.Container.Holder.Container.ListLayout.AbsoluteContentSize.Y + Dropdown.Title.TextBounds.Y + 30)
+						Dropdown.Container.Holder.Visible = true
+					else
+						Dropdown.Size = UDim2.new(1, -10, 0, Dropdown.Title.TextBounds.Y + 25)
+						Dropdown.Container.Holder.Visible = false
+					end
+				end)
+				
+				--[
+				--Dropdown AddToolTip
+				--]
+				
+				function DropdownInit:AddToolTip(name)
+					if tostring(name):gsub(" ", "") ~= "" then
+						Dropdown.MouseEnter:Connect(function()
+							Screen.ToolTip.Text = name
+							Screen.ToolTip.Size = UDim2.new(0, Screen.ToolTip.TextBounds.X + 5, 0, Screen.ToolTip.TextBounds.Y + 5)
+							Screen.ToolTip.Visible = true
+						end)
+						Dropdown.MouseLeave:Connect(function()
+							Screen.ToolTip.Visible = false
+						end)
+					end
+				end
+				
+				--[
+				--Dropdown AddOption
+				--]
+				
+				function DropdownInit:AddOption(name, callback)
+					local OptionInit = {}
+					
+					local Option = Folder.Option:Clone()
+					
+					Option.Name = name .. " O"
+					Option.Parent = Dropdown.Container.Holder.Container
+					Option.Title.Text = name
+					Option.BackgroundColor3 = config.Color
+					Option.Size = UDim2.new(1, 0, 0, Option.Title.TextBounds.Y + 5)
+					Dropdown.Container.Holder.Size = UDim2.new(1, -5, 0, Dropdown.Container.Holder.Container.ListLayout.AbsoluteContentSize.Y)
+					
+					table.insert(library.ColorTable, Option)
+					
+					Option.MouseButton1Down:Connect(function()
+						Option.BackgroundTransparency = 0
+					end)
+					Option.MouseButton1Up:Connect(function()
+						Option.BackgroundTransparency = 1
+					end)
+					Option.MouseLeave:Connect(function()
+						Option.BackgroundTransparency = 1
+					end)
+					Option.MouseButton1Click:Connect(function()
+						Dropdown.Container.Value.Text = name
+						callback(name)
+					end)
+					
+					--[
+					--Dropdown Option SetOption
+					--]
+					
+					function OptionInit:SetOption()
+						Dropdown.Container.Value.Text = name
+						callback(name)
+					end
+					
+					--[
+					--Dropdown Option Remove
+					--]
+					
+					function OptionInit:Remove()
+						Option:Destroy()
+						Dropdown.Container.Holder.Size = UDim2.new(1, -5, 0, Dropdown.Container.Holder.Container.ListLayout.AbsoluteContentSize.Y)
+						Dropdown.Size = UDim2.new(1, -10, 0, Dropdown.Container.Holder.Container.ListLayout.AbsoluteContentSize.Y + Dropdown.Title.TextBounds.Y + 30)
+					end
+					return OptionInit
+				end
+				
+				--[
+				--Dropdown ClearOptions
+				--]
+				
+				function DropdownInit:ClearOptions()
+					for _, Option in pairs(Dropdown.Container.Holder.Container:GetChildren()) do
+						if Option:IsA("TextButton") then
+							Option:Destroy()
+						end
+					end
+					Dropdown.Container.Holder.Size = UDim2.new(1, -5, 0, Dropdown.Container.Holder.Container.ListLayout.AbsoluteContentSize.Y)
+					Dropdown.Size = UDim2.new(1, -10, 0, Dropdown.Container.Holder.Container.ListLayout.AbsoluteContentSize.Y + Dropdown.Title.TextBounds.Y + 30)
+				end
+				
+				--[
+				--Dropdown GetOption
+				--]
+				
+				function DropdownInit:GetOption()
+					return Dropdown.Container.Value.Text
+				end
+				return DropdownInit
+			end
 			return SectionInit
 		end
 		return TabInit
