@@ -5,7 +5,7 @@ if syn then
 elseif getexecutorname then
 	exploit_type = "Script-Ware"
 else
-	game:GetService("Players").LocalPlayer:Kick("Your executor is not supported!")
+	game:GetService("Players").LocalPlayer:Kick("BreakSkill Hub | Your executor is not supported!")
 end
 
 local library = {
@@ -66,7 +66,7 @@ function library:CreateWindow(config, parent)
 	elseif exploit_type == "Script-Ware" then
 		gethui(Screen)
 	else
-		game:GetService("Players").LocalPlayer:Kick("Your executor is not supported!")
+		game:GetService("Players").LocalPlayer:Kick("BreakSkill Hub | Your executor is not supported!")
 	end
 	local Main = Screen.Main
 	local Holder = Main.Holder
